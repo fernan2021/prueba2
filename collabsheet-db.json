@@ -1,0 +1,19 @@
+{
+  "users": {
+    "admin": {
+      "name": "Ferdi",
+      "role": "admin",
+      "passHash": "yx"
+    }
+  },
+  "inviteCodes": [
+    "2J36FT"
+  ],
+  "sheets": {
+    "Hoja1": {
+      "cells": {},
+      "history": []
+    }
+  },
+  "activeSheet": "Hoja1"
+}
