@@ -1,0 +1,1760 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CollabSheet — Hoja Cooperativa</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a08;
+    --surface: #121210;
+    --surface2: #1a1a17;
+    --border: #2a2a24;
+    --accent: #c8f564;
+    --accent2: #f5a623;
+    --text: #e8e8de;
+    --text-dim: #7a7a6e;
+    --red: #ff5f5f;
+    --cell-w: 120px;
+    --cell-h: 32px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── AUTH SCREEN ── */
+  #auth-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  #auth-screen::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 20% 80%, #c8f56415 0%, transparent 60%),
+      radial-gradient(ellipse 40% 60% at 80% 20%, #f5a62310 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .grid-bg {
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  .auth-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 48px;
+    width: 420px;
+    position: relative;
+    animation: fadeUp 0.6s ease;
+  }
+
+  .auth-card::before {
+    content: '';
+    position: absolute;
+    top: -1px; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .logo {
+    font-family: 'Fraunces', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+  }
+
+  .tagline {
+    color: var(--text-dim);
+    font-size: 12px;
+    margin-bottom: 36px;
+    letter-spacing: 0.5px;
+  }
+
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .tab-row {
+    display: flex;
+    gap: 0;
+    margin-bottom: 28px;
+    border: 1px solid var(--border);
+  }
+
+  .tab-btn {
+    flex: 1;
+    padding: 10px;
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+  }
+
+  .tab-btn.active {
+    background: var(--accent);
+    color: var(--bg);
+    font-weight: 500;
+  }
+
+  .field {
+    margin-bottom: 16px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .field input, .field select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .field input:focus, .field select:focus {
+    border-color: var(--accent);
+  }
+
+  .field select option {
+    background: var(--bg);
+  }
+
+  .btn-primary {
+    width: 100%;
+    padding: 12px;
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary:hover {
+    background: #d4f97a;
+    transform: translateY(-1px);
+  }
+
+  .btn-primary:active { transform: translateY(0); }
+
+  .btn-secondary {
+    padding: 8px 16px;
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-secondary:hover { border-color: var(--text); }
+
+  .btn-danger {
+    padding: 6px 12px;
+    background: transparent;
+    color: var(--red);
+    border: 1px solid var(--red);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-danger:hover { background: var(--red); color: var(--bg); }
+
+  .msg { font-size: 12px; margin-top: 12px; text-align: center; }
+  .msg.error { color: var(--red); }
+  .msg.ok { color: var(--accent); }
+
+  .github-info {
+    margin-top: 24px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+
+  .github-info a { color: var(--accent); text-decoration: none; }
+  .github-info strong { color: var(--text); }
+
+  /* ── APP SHELL ── */
+  #app { display: none; min-height: 100vh; flex-direction: column; }
+
+  header {
+    height: 52px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-logo {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    color: var(--accent);
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .header-title {
+    font-size: 12px;
+    color: var(--text-dim);
+    flex: 1;
+  }
+
+  .user-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+  }
+
+  .role-tag {
+    padding: 2px 8px;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  .role-tag.admin { background: var(--accent2); color: var(--bg); }
+  .role-tag.user { background: var(--border); color: var(--text-dim); }
+
+  .header-actions { display: flex; gap: 8px; align-items: center; }
+
+  .sync-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--text-dim);
+    transition: background 0.3s;
+  }
+
+  .sync-indicator.syncing { background: var(--accent2); animation: pulse 1s infinite; }
+  .sync-indicator.synced { background: var(--accent); }
+  .sync-indicator.error { background: var(--red); }
+
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  /* ── MAIN LAYOUT ── */
+  .app-body { display: flex; flex: 1; overflow: hidden; height: calc(100vh - 52px); }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 220px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    overflow-y: auto;
+  }
+
+  .sidebar-section {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-section-title {
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .sheet-item {
+    padding: 8px 10px;
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--text-dim);
+    border: 1px solid transparent;
+    margin-bottom: 4px;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .sheet-item:hover { color: var(--text); border-color: var(--border); }
+  .sheet-item.active { color: var(--accent); border-color: var(--accent); background: #c8f56408; }
+
+  .sheet-item .sheet-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .user-item {
+    padding: 6px 8px;
+    font-size: 11px;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2px;
+  }
+
+  .user-item-name { display: flex; align-items: center; gap: 6px; }
+
+  .online-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  /* ── SPREADSHEET AREA ── */
+  .sheet-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .formula-bar {
+    height: 36px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 0;
+    flex-shrink: 0;
+  }
+
+  .cell-ref {
+    width: 80px;
+    padding: 0 12px;
+    font-size: 12px;
+    color: var(--accent);
+    border-right: 1px solid var(--border);
+    height: 100%;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .formula-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    padding: 0 12px;
+    outline: none;
+  }
+
+  .toolbar {
+    height: 40px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 4px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+  }
+
+  .toolbar-btn {
+    padding: 4px 10px;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-dim);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .toolbar-btn:hover { border-color: var(--border); color: var(--text); }
+  .toolbar-btn.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+
+  .toolbar-sep {
+    width: 1px;
+    height: 20px;
+    background: var(--border);
+    margin: 0 4px;
+  }
+
+  /* ── TABLE ── */
+  .table-container {
+    flex: 1;
+    overflow: auto;
+    position: relative;
+  }
+
+  table {
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+
+  th, td {
+    width: var(--cell-w);
+    height: var(--cell-h);
+    border: 1px solid var(--border);
+    position: relative;
+  }
+
+  th {
+    background: var(--surface);
+    color: var(--text-dim);
+    font-size: 11px;
+    font-weight: 400;
+    text-align: center;
+    letter-spacing: 0.5px;
+    position: sticky;
+    user-select: none;
+  }
+
+  th.row-header {
+    width: 48px;
+    top: 0;
+    left: 0;
+    z-index: 3;
+  }
+
+  th.col-header { top: 0; z-index: 2; }
+  td.row-num { background: var(--surface); color: var(--text-dim); font-size: 11px; text-align: center; position: sticky; left: 0; z-index: 1; }
+
+  td.cell {
+    background: var(--bg);
+    cursor: cell;
+    font-size: 12px;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  td.cell.selected {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+    z-index: 1;
+  }
+
+  td.cell.selected-range {
+    background: #c8f56412;
+  }
+
+  td.cell.locked {
+    background: #1a1a17;
+    cursor: not-allowed;
+  }
+
+  .cell-content {
+    width: 100%;
+    height: 100%;
+    padding: 4px 6px;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 12px;
+  }
+
+  .cell-editor {
+    position: absolute;
+    inset: 0;
+    background: var(--bg);
+    border: 2px solid var(--accent);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    padding: 4px 6px;
+    outline: none;
+    z-index: 10;
+    resize: none;
+    overflow: hidden;
+  }
+
+  /* ── ADMIN PANEL ── */
+  .admin-panel {
+    width: 300px;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    display: none;
+    flex-direction: column;
+    overflow-y: auto;
+    flex-shrink: 0;
+  }
+
+  .admin-panel.open { display: flex; }
+
+  .panel-header {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .panel-title {
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--accent2);
+  }
+
+  .panel-close { background: none; border: none; color: var(--text-dim); font-size: 18px; cursor: pointer; line-height: 1; }
+  .panel-close:hover { color: var(--text); }
+
+  .panel-section { padding: 16px; border-bottom: 1px solid var(--border); }
+  .panel-section-title { font-size: 9px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 12px; }
+
+  .user-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px;
+    margin-bottom: 4px;
+    border: 1px solid var(--border);
+    font-size: 12px;
+  }
+
+  .user-row-name { color: var(--text); }
+  .user-row-role { color: var(--text-dim); font-size: 10px; }
+  .user-row-actions { display: flex; gap: 4px; }
+
+  .lock-indicator {
+    font-size: 9px;
+    padding: 2px 6px;
+    background: var(--surface2);
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    margin-bottom: 4px;
+  }
+
+  /* ── MODALS ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 32px;
+    width: 480px;
+    max-width: 90vw;
+    position: relative;
+  }
+
+  .modal::before {
+    content: '';
+    position: absolute;
+    top: -1px; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+  }
+
+  .modal-title {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    margin-bottom: 20px;
+  }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    padding: 12px 16px;
+    font-size: 12px;
+    color: var(--text);
+    z-index: 9999;
+    transform: translateX(120%);
+    transition: transform 0.3s ease;
+    max-width: 300px;
+  }
+
+  #toast.show { transform: translateX(0); }
+  #toast.error { border-left-color: var(--red); }
+
+  /* ── HISTORY ── */
+  .history-item {
+    padding: 8px;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .history-item strong { color: var(--text); }
+  .history-cell { color: var(--accent); }
+
+  /* ── SETUP WIZARD ── */
+  .setup-step { display: none; }
+  .setup-step.active { display: block; }
+  .step-dots { display: flex; gap: 6px; margin-bottom: 20px; }
+  .step-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: background 0.2s; }
+  .step-dot.active { background: var(--accent); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .admin-panel { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+<div id="toast"></div>
+
+<!-- ══════════ AUTH SCREEN ══════════ -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="logo">CollabSheet</div>
+    <div class="tagline">HOJA COLABORATIVA · GITHUB PAGES</div>
+
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="showTab('login')">ENTRAR</button>
+      <button class="tab-btn" onclick="showTab('register')">REGISTRARSE</button>
+      <button class="tab-btn" onclick="showTab('setup')">CONFIGURAR</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="tab-login">
+      <div class="field">
+        <label>Usuario</label>
+        <input type="text" id="login-user" placeholder="nombre de usuario">
+      </div>
+      <div class="field">
+        <label>Contraseña</label>
+        <input type="password" id="login-pass" placeholder="••••••••">
+      </div>
+      <button class="btn-primary" onclick="doLogin()">ENTRAR →</button>
+      <div id="login-msg" class="msg"></div>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="tab-register" style="display:none">
+      <div class="field">
+        <label>Nombre</label>
+        <input type="text" id="reg-name" placeholder="Tu nombre">
+      </div>
+      <div class="field">
+        <label>Usuario</label>
+        <input type="text" id="reg-user" placeholder="sin espacios">
+      </div>
+      <div class="field">
+        <label>Contraseña</label>
+        <input type="password" id="reg-pass" placeholder="••••••••">
+      </div>
+      <div class="field">
+        <label>Código de Invitación</label>
+        <input type="text" id="reg-code" placeholder="pregunta al admin">
+      </div>
+      <button class="btn-primary" onclick="doRegister()">CREAR CUENTA →</button>
+      <div id="reg-msg" class="msg"></div>
+    </div>
+
+    <!-- SETUP -->
+    <div id="tab-setup" style="display:none">
+      <div class="step-dots">
+        <div class="step-dot active" id="dot-0"></div>
+        <div class="step-dot" id="dot-1"></div>
+        <div class="step-dot" id="dot-2"></div>
+      </div>
+
+      <div class="setup-step active" id="step-0">
+        <div class="section-label">PASO 1 · Token de GitHub</div>
+        <p style="font-size:12px;color:var(--text-dim);margin-bottom:16px;line-height:1.6">
+          CollabSheet usa tu repositorio GitHub para guardar datos.<br>
+          Necesitas un <strong style="color:var(--text)">Personal Access Token</strong> con permisos <code style="color:var(--accent)">repo</code>.
+        </p>
+        <div class="field">
+          <label>GitHub Token (ghp_...)</label>
+          <input type="password" id="setup-token" placeholder="ghp_xxxxxxxxxxxx">
+        </div>
+        <button class="btn-primary" onclick="setupStep1()">SIGUIENTE →</button>
+      </div>
+
+      <div class="setup-step" id="step-1">
+        <div class="section-label">PASO 2 · Repositorio</div>
+        <div class="field">
+          <label>Usuario/Org de GitHub</label>
+          <input type="text" id="setup-owner" placeholder="miusuario">
+        </div>
+        <div class="field">
+          <label>Nombre del Repositorio</label>
+          <input type="text" id="setup-repo" placeholder="mi-collabsheet">
+        </div>
+        <button class="btn-primary" onclick="setupStep2()">VERIFICAR Y CONTINUAR →</button>
+        <div id="setup-msg" class="msg"></div>
+      </div>
+
+      <div class="setup-step" id="step-2">
+        <div class="section-label">PASO 3 · Cuenta Admin</div>
+        <div class="field">
+          <label>Nombre del Admin</label>
+          <input type="text" id="setup-admin-name" placeholder="Administrador">
+        </div>
+        <div class="field">
+          <label>Usuario Admin</label>
+          <input type="text" id="setup-admin-user" placeholder="admin">
+        </div>
+        <div class="field">
+          <label>Contraseña Admin</label>
+          <input type="password" id="setup-admin-pass" placeholder="••••••••">
+        </div>
+        <button class="btn-primary" onclick="setupFinish()">INICIALIZAR PLATAFORMA →</button>
+        <div id="setup-msg2" class="msg"></div>
+      </div>
+    </div>
+
+    <div class="github-info" id="github-info-box" style="margin-top:20px">
+      ℹ️ Los datos se guardan en <strong>GitHub</strong> como archivos JSON en tu repositorio.<br>
+      <a href="https://github.com/settings/tokens/new?scopes=repo&description=CollabSheet" target="_blank">→ Crear token aquí</a> (scope: <code>repo</code>)
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ APP ══════════ -->
+<div id="app">
+
+  <header>
+    <div class="header-logo">CollabSheet</div>
+    <div class="header-title" id="sheet-title-header">Cargando...</div>
+    <div class="header-actions">
+      <div class="sync-indicator" id="sync-dot" title="Estado de sincronización"></div>
+      <span style="font-size:11px;color:var(--text-dim)" id="sync-label">—</span>
+      <button class="btn-secondary" onclick="saveToGitHub()" style="font-size:11px;padding:6px 12px">↑ GUARDAR</button>
+      <button class="btn-secondary" onclick="loadFromGitHub()" style="font-size:11px;padding:6px 12px">↓ SYNC</button>
+    </div>
+    <div class="user-badge">
+      <span id="header-username">—</span>
+      <span class="role-tag" id="header-role-tag">user</span>
+      <button class="btn-secondary" onclick="toggleAdminPanel()" id="admin-toggle-btn" style="display:none;font-size:11px;padding:6px 12px">ADMIN</button>
+      <button class="btn-secondary" onclick="doLogout()" style="font-size:11px;padding:6px 10px">✕</button>
+    </div>
+  </header>
+
+  <div class="app-body">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Hojas</div>
+        <div id="sheets-list"></div>
+        <button class="btn-secondary" onclick="addSheet()" id="add-sheet-btn" style="display:none;width:100%;font-size:11px;margin-top:8px">+ NUEVA HOJA</button>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Usuarios Activos</div>
+        <div id="users-list"></div>
+      </div>
+      <div class="sidebar-section" id="history-section">
+        <div class="sidebar-section-title">Historial</div>
+        <div id="history-list" style="max-height:200px;overflow-y:auto"></div>
+      </div>
+    </div>
+
+    <!-- SPREADSHEET -->
+    <div class="sheet-area">
+      <div class="formula-bar">
+        <div class="cell-ref" id="cell-ref-display">A1</div>
+        <input class="formula-input" id="formula-input" placeholder="Valor o fórmula..." oninput="onFormulaInput()" onkeydown="onFormulaKeydown(event)">
+      </div>
+      <div class="toolbar">
+        <button class="toolbar-btn" onclick="formatCell('bold')" title="Negrita"><b>B</b></button>
+        <button class="toolbar-btn" onclick="formatCell('italic')" title="Itálica"><i>I</i></button>
+        <div class="toolbar-sep"></div>
+        <button class="toolbar-btn" onclick="formatCell('align-left')">⬅</button>
+        <button class="toolbar-btn" onclick="formatCell('align-center')">≡</button>
+        <button class="toolbar-btn" onclick="formatCell('align-right')">➡</button>
+        <div class="toolbar-sep"></div>
+        <button class="toolbar-btn" onclick="addRow()" id="btn-add-row">+ FILA</button>
+        <button class="toolbar-btn" onclick="addCol()" id="btn-add-col">+ COL</button>
+        <div class="toolbar-sep"></div>
+        <button class="toolbar-btn" onclick="toggleLockCell()" id="btn-lock">🔒 BLOQ</button>
+        <div class="toolbar-sep"></div>
+        <button class="toolbar-btn" onclick="showImportModal()">IMPORTAR CSV</button>
+        <button class="toolbar-btn" onclick="exportCSV()">EXPORTAR CSV</button>
+      </div>
+      <div class="table-container" id="table-container">
+        <table id="sheet-table"></table>
+      </div>
+    </div>
+
+    <!-- ADMIN PANEL -->
+    <div class="admin-panel" id="admin-panel">
+      <div class="panel-header">
+        <span class="panel-title">Panel Admin</span>
+        <button class="panel-close" onclick="toggleAdminPanel()">×</button>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-section-title">Usuarios</div>
+        <div id="admin-users-list"></div>
+        <div style="margin-top:12px">
+          <div class="section-label" style="margin-bottom:8px">Código de Invitación</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="text" id="invite-code-display" readonly style="background:var(--bg);border:1px solid var(--border);color:var(--accent);padding:6px 10px;font-family:DM Mono,monospace;font-size:12px;flex:1">
+            <button class="btn-secondary" onclick="genInviteCode()" style="font-size:11px;padding:6px 10px">GENERAR</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-section-title">Celdas Bloqueadas</div>
+        <div id="admin-locks-list"></div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-section-title">Hojas</div>
+        <div id="admin-sheets-list"></div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-section-title">Peligro</div>
+        <button class="btn-danger" onclick="clearAllData()">BORRAR TODOS LOS DATOS</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="modal-overlay" id="import-modal">
+  <div class="modal">
+    <div class="modal-title">Importar CSV</div>
+    <div class="field">
+      <label>Pega el contenido CSV</label>
+      <textarea id="csv-input" style="width:100%;height:160px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:DM Mono,monospace;font-size:12px;padding:8px;resize:vertical;outline:none"></textarea>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn-primary" onclick="importCSV()" style="flex:1">IMPORTAR</button>
+      <button class="btn-secondary" onclick="closeImportModal()">CANCELAR</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════
+const ROWS = 30, COLS = 15;
+let state = {
+  config: null,       // {token, owner, repo}
+  currentUser: null,  // {username, name, role}
+  db: {               // saved to GitHub
+    users: {},        // {username: {name, role, passHash}}
+    inviteCodes: [],  // [code]
+    sheets: {
+      'Hoja1': {
+        cells: {},    // {'A1': {value, format, locked}}
+        history: []   // [{user, cell, oldVal, newVal, ts}]
+      }
+    },
+    activeSheet: 'Hoja1'
+  },
+  currentSheet: 'Hoja1',
+  selectedCell: {r:0, c:0},
+  editing: false,
+  dbSha: null,        // for GitHub file update
+};
+
+// ════════════════════════════════════════════════
+//  UTILS
+// ════════════════════════════════════════════════
+const colName = i => {
+  let s = '';
+  let n = i + 1;
+  while (n > 0) { n--; s = String.fromCharCode(65 + (n % 26)) + s; n = Math.floor(n / 26); }
+  return s;
+};
+const cellKey = (r, c) => `${colName(c)}${r+1}`;
+const hashPass = s => btoa(unescape(encodeURIComponent(s))).split('').reduce((a,c)=>a+c.charCodeAt(0),0).toString(36);
+
+function toast(msg, isErr=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show' + (isErr ? ' error' : '');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.className = '', 3000);
+}
+
+function setSyncState(state) {
+  const dot = document.getElementById('sync-dot');
+  const lbl = document.getElementById('sync-label');
+  dot.className = 'sync-indicator ' + state;
+  const labels = { syncing: 'guardando...', synced: 'guardado', error: 'error' };
+  lbl.textContent = labels[state] || '—';
+}
+
+// ════════════════════════════════════════════════
+//  LOCAL STORAGE
+// ════════════════════════════════════════════════
+function loadConfig() {
+  const s = localStorage.getItem('cs_config');
+  return s ? JSON.parse(s) : null;
+}
+function saveConfig(cfg) { localStorage.setItem('cs_config', JSON.stringify(cfg)); }
+
+function loadSession() {
+  const s = localStorage.getItem('cs_session');
+  return s ? JSON.parse(s) : null;
+}
+function saveSession(u) { localStorage.setItem('cs_session', JSON.stringify(u)); }
+function clearSession() { localStorage.removeItem('cs_session'); }
+
+// ════════════════════════════════════════════════
+//  GITHUB API
+// ════════════════════════════════════════════════
+async function ghRequest(path, method='GET', body=null) {
+  const cfg = state.config;
+  const url = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${path}`;
+  const opts = {
+    method,
+    headers: {
+      'Authorization': `token ${cfg.token}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json'
+    }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(url, opts);
+  return r;
+}
+
+async function loadFromGitHub() {
+  if (!state.config) return;
+  setSyncState('syncing');
+  try {
+    const r = await ghRequest('collabsheet-db.json');
+    if (r.status === 404) {
+      setSyncState('error');
+      return false;
+    }
+    const data = await r.json();
+    state.dbSha = data.sha;
+    const decoded = JSON.parse(atob(data.content.replace(/\n/g,'')));
+    state.db = decoded;
+    state.currentSheet = state.db.activeSheet || 'Hoja1';
+    setSyncState('synced');
+    return true;
+  } catch(e) {
+    setSyncState('error');
+    toast('Error al cargar desde GitHub', true);
+    return false;
+  }
+}
+
+async function saveToGitHub() {
+  if (!state.config) return;
+  setSyncState('syncing');
+  const content = btoa(unescape(encodeURIComponent(JSON.stringify(state.db, null, 2))));
+  const body = {
+    message: `[CollabSheet] ${state.currentUser?.username || 'system'} - ${new Date().toISOString()}`,
+    content,
+    ...(state.dbSha ? {sha: state.dbSha} : {})
+  };
+  try {
+    const r = await ghRequest('collabsheet-db.json', 'PUT', body);
+    if (r.ok) {
+      const data = await r.json();
+      state.dbSha = data.content.sha;
+      setSyncState('synced');
+      toast('Guardado en GitHub ✓');
+    } else {
+      setSyncState('error');
+      const err = await r.json();
+      toast('Error: ' + (err.message || 'desconocido'), true);
+    }
+  } catch(e) {
+    setSyncState('error');
+    toast('Error de red', true);
+  }
+}
+
+// ════════════════════════════════════════════════
+//  AUTH UI
+// ════════════════════════════════════════════════
+function showTab(name) {
+  ['login','register','setup'].forEach(t => {
+    document.getElementById('tab-'+t).style.display = t===name ? 'block' : 'none';
+    document.querySelectorAll('.tab-btn').forEach((b,i) => {
+      b.classList.toggle('active', ['login','register','setup'][i]===name);
+    });
+  });
+}
+
+// SETUP
+let setupCurrentStep = 0;
+function setupGoto(n) {
+  document.querySelectorAll('.setup-step').forEach((el,i) => el.classList.toggle('active', i===n));
+  document.querySelectorAll('.step-dot').forEach((el,i) => el.classList.toggle('active', i===n));
+  setupCurrentStep = n;
+}
+
+function setupStep1() {
+  const token = document.getElementById('setup-token').value.trim();
+  if (!token.startsWith('ghp_') && !token.startsWith('github_pat_')) return toast('Token inválido (debe empezar con ghp_ o github_pat_)', true);
+  state.config = { token };
+  setupGoto(1);
+}
+
+async function setupStep2() {
+  const owner = document.getElementById('setup-owner').value.trim();
+  const repo = document.getElementById('setup-repo').value.trim();
+  if (!owner || !repo) return toast('Completa los campos', true);
+  state.config.owner = owner;
+  state.config.repo = repo;
+  const msg = document.getElementById('setup-msg');
+  msg.textContent = 'Verificando...';
+  msg.className = 'msg';
+  try {
+    const r = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
+      headers: { 'Authorization': `token ${state.config.token}` }
+    });
+    if (r.ok) {
+      msg.textContent = '✓ Repositorio encontrado';
+      msg.className = 'msg ok';
+      setTimeout(() => setupGoto(2), 800);
+    } else {
+      msg.textContent = '✗ Repositorio no encontrado o sin acceso';
+      msg.className = 'msg error';
+    }
+  } catch(e) {
+    msg.textContent = '✗ Error de red';
+    msg.className = 'msg error';
+  }
+}
+
+async function setupFinish() {
+  const name = document.getElementById('setup-admin-name').value.trim();
+  const username = document.getElementById('setup-admin-user').value.trim();
+  const pass = document.getElementById('setup-admin-pass').value;
+  if (!name || !username || !pass) return toast('Completa todos los campos', true);
+
+  const msg = document.getElementById('setup-msg2');
+  msg.textContent = 'Inicializando...';
+  msg.className = 'msg';
+
+  state.db.users[username] = { name, role: 'admin', passHash: hashPass(pass) };
+  state.db.inviteCodes = [Math.random().toString(36).slice(2,8).toUpperCase()];
+
+  saveConfig(state.config);
+  const ok = await saveToGitHub();
+  if (ok !== false) {
+    msg.textContent = '✓ ¡Plataforma creada! Ahora inicia sesión.';
+    msg.className = 'msg ok';
+    setTimeout(() => showTab('login'), 1500);
+  } else {
+    // save to GH always resolves, check toast
+    msg.textContent = '✓ Guardado. Inicia sesión.';
+    msg.className = 'msg ok';
+    setTimeout(() => showTab('login'), 1500);
+  }
+}
+
+// LOGIN
+async function doLogin() {
+  const username = document.getElementById('login-user').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const msg = document.getElementById('login-msg');
+
+  if (!state.config) {
+    msg.textContent = 'Primero configura la plataforma (pestaña CONFIGURAR)';
+    msg.className = 'msg error';
+    return;
+  }
+
+  msg.textContent = 'Cargando...';
+  msg.className = 'msg';
+
+  const loaded = await loadFromGitHub();
+  const user = state.db.users[username];
+  if (!user || user.passHash !== hashPass(pass)) {
+    msg.textContent = 'Usuario o contraseña incorrectos';
+    msg.className = 'msg error';
+    return;
+  }
+
+  state.currentUser = { username, name: user.name, role: user.role };
+  saveSession(state.currentUser);
+  enterApp();
+}
+
+// REGISTER
+async function doRegister() {
+  const name = document.getElementById('reg-name').value.trim();
+  const username = document.getElementById('reg-user').value.trim();
+  const pass = document.getElementById('reg-pass').value;
+  const code = document.getElementById('reg-code').value.trim().toUpperCase();
+  const msg = document.getElementById('reg-msg');
+
+  if (!name || !username || !pass || !code) { msg.textContent = 'Completa todos los campos'; msg.className='msg error'; return; }
+  if (!state.config) { msg.textContent = 'Configura la plataforma primero'; msg.className='msg error'; return; }
+
+  msg.textContent = 'Verificando...'; msg.className = 'msg';
+  await loadFromGitHub();
+
+  if (!state.db.inviteCodes.includes(code)) {
+    msg.textContent = '✗ Código de invitación inválido';
+    msg.className = 'msg error';
+    return;
+  }
+  if (state.db.users[username]) {
+    msg.textContent = '✗ El usuario ya existe';
+    msg.className = 'msg error';
+    return;
+  }
+
+  state.db.users[username] = { name, role: 'user', passHash: hashPass(pass) };
+  // remove used code
+  state.db.inviteCodes = state.db.inviteCodes.filter(c => c !== code);
+  await saveToGitHub();
+
+  msg.textContent = '✓ Cuenta creada. Inicia sesión.';
+  msg.className = 'msg ok';
+  setTimeout(() => showTab('login'), 1200);
+}
+
+function doLogout() {
+  clearSession();
+  state.currentUser = null;
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+
+// ════════════════════════════════════════════════
+//  APP INIT
+// ════════════════════════════════════════════════
+function enterApp() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+
+  const u = state.currentUser;
+  document.getElementById('header-username').textContent = u.name;
+  const roleTag = document.getElementById('header-role-tag');
+  roleTag.textContent = u.role;
+  roleTag.className = 'role-tag ' + u.role;
+
+  const isAdmin = u.role === 'admin';
+  document.getElementById('admin-toggle-btn').style.display = isAdmin ? 'inline-block' : 'none';
+  document.getElementById('add-sheet-btn').style.display = isAdmin ? 'block' : 'none';
+  document.getElementById('btn-lock').style.display = isAdmin ? 'inline-block' : 'none';
+  document.getElementById('btn-add-row').style.display = isAdmin ? 'inline-block' : 'none';
+  document.getElementById('btn-add-col').style.display = isAdmin ? 'inline-block' : 'none';
+
+  renderSheetsList();
+  renderSheet();
+  renderUsersList();
+  renderAdminPanel();
+
+  // auto-sync every 30s
+  setInterval(() => loadFromGitHub().then(() => { renderSheet(); renderAdminPanel(); }), 30000);
+}
+
+// ════════════════════════════════════════════════
+//  SPREADSHEET RENDER
+// ════════════════════════════════════════════════
+function getSheetData() {
+  if (!state.db.sheets[state.currentSheet]) {
+    state.db.sheets[state.currentSheet] = { cells: {}, history: [] };
+  }
+  return state.db.sheets[state.currentSheet];
+}
+
+function getCell(r, c) {
+  const key = cellKey(r, c);
+  return getSheetData().cells[key] || { value: '', format: {}, locked: false };
+}
+
+function setCell(r, c, value) {
+  const sheet = getSheetData();
+  const key = cellKey(r, c);
+  const old = (sheet.cells[key] || {}).value || '';
+  if (!sheet.cells[key]) sheet.cells[key] = { value: '', format: {}, locked: false };
+  sheet.cells[key].value = value;
+
+  // history
+  if (!sheet.history) sheet.history = [];
+  sheet.history.unshift({
+    user: state.currentUser.name,
+    cell: key,
+    oldVal: old,
+    newVal: value,
+    ts: new Date().toLocaleTimeString()
+  });
+  if (sheet.history.length > 50) sheet.history.pop();
+
+  renderHistory();
+  renderCell(r, c);
+}
+
+function numCols() {
+  const cells = getSheetData().cells;
+  let max = COLS;
+  Object.keys(cells).forEach(k => {
+    const m = k.match(/^([A-Z]+)(\d+)$/);
+    if (m) {
+      let colIdx = 0;
+      for (let i = 0; i < m[1].length; i++) colIdx = colIdx * 26 + m[1].charCodeAt(i) - 64;
+      max = Math.max(max, colIdx);
+    }
+  });
+  return max;
+}
+
+function numRows() {
+  const cells = getSheetData().cells;
+  let max = ROWS;
+  Object.keys(cells).forEach(k => {
+    const m = k.match(/^([A-Z]+)(\d+)$/);
+    if (m) max = Math.max(max, parseInt(m[2]));
+  });
+  return max;
+}
+
+function renderSheet() {
+  const rows = numRows();
+  const cols = numCols();
+  const table = document.getElementById('sheet-table');
+  document.getElementById('sheet-title-header').textContent = state.currentSheet;
+
+  let html = '<thead><tr>';
+  html += '<th class="row-header col-header">#</th>';
+  for (let c = 0; c < cols; c++) html += `<th class="col-header">${colName(c)}</th>`;
+  html += '</tr></thead><tbody>';
+
+  for (let r = 0; r < rows; r++) {
+    html += `<tr><td class="row-num">${r+1}</td>`;
+    for (let c = 0; c < cols; c++) {
+      const cell = getCell(r, c);
+      const key = cellKey(r, c);
+      const fmt = cell.format || {};
+      const locked = cell.locked;
+      const styles = [
+        fmt.bold ? 'font-weight:bold' : '',
+        fmt.italic ? 'font-style:italic' : '',
+        fmt.align ? `text-align:${fmt.align}` : ''
+      ].filter(Boolean).join(';');
+
+      html += `<td class="cell${locked?' locked':''}" data-r="${r}" data-c="${c}" onclick="selectCell(${r},${c})" ondblclick="startEdit(${r},${c})">`;
+      html += `<div class="cell-content" style="${styles}">${escapeHtml(evalFormula(cell.value))}</div>`;
+      html += `</td>`;
+    }
+    html += '</tr>';
+  }
+  html += '</tbody>';
+  table.innerHTML = html;
+  highlightSelected();
+}
+
+function renderCell(r, c) {
+  const td = document.querySelector(`td.cell[data-r="${r}"][data-c="${c}"]`);
+  if (!td) return;
+  const cell = getCell(r, c);
+  const fmt = cell.format || {};
+  const styles = [
+    fmt.bold ? 'font-weight:bold' : '',
+    fmt.italic ? 'font-style:italic' : '',
+    fmt.align ? `text-align:${fmt.align}` : ''
+  ].filter(Boolean).join(';');
+  td.querySelector('.cell-content').innerHTML = escapeHtml(evalFormula(cell.value));
+  td.querySelector('.cell-content').style.cssText = styles;
+}
+
+function escapeHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Simple formula evaluator
+function evalFormula(val) {
+  if (!val || !val.toString().startsWith('=')) return val || '';
+  try {
+    const expr = val.slice(1)
+      .replace(/SUM\(([^)]+)\)/gi, (_, r) => sumRange(r))
+      .replace(/AVG\(([^)]+)\)/gi, (_, r) => avgRange(r))
+      .replace(/MAX\(([^)]+)\)/gi, (_, r) => maxRange(r))
+      .replace(/MIN\(([^)]+)\)/gi, (_, r) => minRange(r))
+      .replace(/COUNT\(([^)]+)\)/gi, (_, r) => countRange(r))
+      .replace(/([A-Z]+\d+)/g, (m) => {
+        const match = m.match(/^([A-Z]+)(\d+)$/);
+        if (!match) return 0;
+        let ci = 0;
+        for (let i = 0; i < match[1].length; i++) ci = ci*26 + match[1].charCodeAt(i)-65;
+        const ri = parseInt(match[2]) - 1;
+        const cv = (getCell(ri, ci) || {}).value || '0';
+        return isNaN(cv) ? `"${cv}"` : (cv || '0');
+      });
+    return Function('"use strict";return (' + expr + ')')();
+  } catch(e) { return '#ERR'; }
+}
+
+function parseRange(r) {
+  const [from, to] = r.split(':');
+  const pm = from.match(/^([A-Z]+)(\d+)$/);
+  const qm = to.match(/^([A-Z]+)(\d+)$/);
+  if (!pm || !qm) return [];
+  let c1 = 0, c2 = 0;
+  for (let i = 0; i < pm[1].length; i++) c1 = c1*26 + pm[1].charCodeAt(i)-65;
+  for (let i = 0; i < qm[1].length; i++) c2 = c2*26 + qm[1].charCodeAt(i)-65;
+  const r1 = parseInt(pm[2])-1, r2 = parseInt(qm[2])-1;
+  const vals = [];
+  for (let r = r1; r <= r2; r++)
+    for (let c = c1; c <= c2; c++) {
+      const v = parseFloat((getCell(r,c)||{}).value);
+      if (!isNaN(v)) vals.push(v);
+    }
+  return vals;
+}
+const sumRange = r => parseRange(r).reduce((a,b)=>a+b,0);
+const avgRange = r => { const v=parseRange(r); return v.length?v.reduce((a,b)=>a+b,0)/v.length:0; };
+const maxRange = r => { const v=parseRange(r); return v.length?Math.max(...v):0; };
+const minRange = r => { const v=parseRange(r); return v.length?Math.min(...v):0; };
+const countRange = r => parseRange(r).length;
+
+// ════════════════════════════════════════════════
+//  CELL INTERACTION
+// ════════════════════════════════════════════════
+function selectCell(r, c) {
+  if (state.editing) commitEdit();
+  state.selectedCell = {r, c};
+  highlightSelected();
+  const cell = getCell(r, c);
+  document.getElementById('cell-ref-display').textContent = cellKey(r,c);
+  document.getElementById('formula-input').value = cell.value || '';
+}
+
+function highlightSelected() {
+  document.querySelectorAll('td.cell.selected').forEach(el => el.classList.remove('selected'));
+  const {r, c} = state.selectedCell;
+  const td = document.querySelector(`td.cell[data-r="${r}"][data-c="${c}"]`);
+  if (td) td.classList.add('selected');
+}
+
+function startEdit(r, c) {
+  const cell = getCell(r, c);
+  if (cell.locked && state.currentUser.role !== 'admin') {
+    toast('Celda bloqueada', true);
+    return;
+  }
+  state.editing = true;
+  const td = document.querySelector(`td.cell[data-r="${r}"][data-c="${c}"]`);
+  if (!td) return;
+  const input = document.createElement('input');
+  input.className = 'cell-editor';
+  input.value = cell.value || '';
+  td.appendChild(input);
+  input.focus();
+  input.select();
+  input.onkeydown = e => {
+    if (e.key === 'Enter') { e.preventDefault(); commitEdit(r, c, input.value); }
+    if (e.key === 'Escape') { e.preventDefault(); cancelEdit(td, input); }
+    if (e.key === 'Tab') { e.preventDefault(); commitEdit(r, c, input.value); selectCell(r, c+1); }
+  };
+  input.onblur = () => commitEdit(r, c, input.value);
+}
+
+function commitEdit(r, c, val) {
+  if (r === undefined) { r = state.selectedCell.r; c = state.selectedCell.c; }
+  const td = document.querySelector(`td.cell[data-r="${r}"][data-c="${c}"]`);
+  if (td) {
+    const inp = td.querySelector('.cell-editor');
+    if (inp) { val = val !== undefined ? val : inp.value; inp.remove(); }
+  }
+  if (val !== undefined) setCell(r, c, val);
+  state.editing = false;
+}
+
+function cancelEdit(td, inp) {
+  inp.remove();
+  state.editing = false;
+}
+
+function onFormulaInput() {
+  const {r, c} = state.selectedCell;
+  // just preview, don't save yet
+}
+
+function onFormulaKeydown(e) {
+  if (e.key === 'Enter') {
+    const val = document.getElementById('formula-input').value;
+    setCell(state.selectedCell.r, state.selectedCell.c, val);
+  }
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', e => {
+  if (state.editing) return;
+  const {r, c} = state.selectedCell;
+  const rows = numRows(), cols = numCols();
+  const moves = { ArrowUp:[r-1,c], ArrowDown:[r+1,c], ArrowLeft:[r,c-1], ArrowRight:[r,c+1] };
+  if (moves[e.key]) {
+    e.preventDefault();
+    const [nr,nc] = moves[e.key];
+    if (nr>=0&&nr<rows&&nc>=0&&nc<cols) selectCell(nr,nc);
+  } else if (e.key === 'Enter' && !e.shiftKey) {
+    startEdit(r, c);
+  } else if (e.key === 'Delete' || e.key === 'Backspace') {
+    if (!document.activeElement.matches('input,textarea')) {
+      setCell(r, c, '');
+    }
+  } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !document.activeElement.matches('input,textarea')) {
+    startEdit(r, c);
+  }
+});
+
+// ════════════════════════════════════════════════
+//  FORMATTING
+// ════════════════════════════════════════════════
+function formatCell(type) {
+  const {r, c} = state.selectedCell;
+  const sheet = getSheetData();
+  const key = cellKey(r, c);
+  if (!sheet.cells[key]) sheet.cells[key] = {value:'',format:{},locked:false};
+  const fmt = sheet.cells[key].format = sheet.cells[key].format || {};
+  if (type === 'bold') fmt.bold = !fmt.bold;
+  else if (type === 'italic') fmt.italic = !fmt.italic;
+  else if (type.startsWith('align-')) fmt.align = type.split('-')[1];
+  renderCell(r, c);
+}
+
+// ════════════════════════════════════════════════
+//  LOCK
+// ════════════════════════════════════════════════
+function toggleLockCell() {
+  if (state.currentUser.role !== 'admin') return;
+  const {r, c} = state.selectedCell;
+  const sheet = getSheetData();
+  const key = cellKey(r, c);
+  if (!sheet.cells[key]) sheet.cells[key] = {value:'',format:{},locked:false};
+  sheet.cells[key].locked = !sheet.cells[key].locked;
+  renderCell(r, c);
+  const td = document.querySelector(`td.cell[data-r="${r}"][data-c="${c}"]`);
+  if (td) td.classList.toggle('locked', sheet.cells[key].locked);
+  renderAdminPanel();
+  toast(sheet.cells[key].locked ? `🔒 ${key} bloqueada` : `🔓 ${key} desbloqueada`);
+}
+
+// ════════════════════════════════════════════════
+//  ROWS / COLS
+// ════════════════════════════════════════════════
+function addRow() { renderSheet(); }
+function addCol() { renderSheet(); }
+
+// ════════════════════════════════════════════════
+//  SHEETS
+// ════════════════════════════════════════════════
+function renderSheetsList() {
+  const el = document.getElementById('sheets-list');
+  el.innerHTML = '';
+  Object.keys(state.db.sheets).forEach(name => {
+    const div = document.createElement('div');
+    div.className = 'sheet-item' + (name === state.currentSheet ? ' active' : '');
+    div.innerHTML = `<div class="sheet-dot"></div>${name}`;
+    div.onclick = () => switchSheet(name);
+    el.appendChild(div);
+  });
+}
+
+function switchSheet(name) {
+  state.currentSheet = name;
+  state.db.activeSheet = name;
+  renderSheetsList();
+  renderSheet();
+  renderHistory();
+}
+
+function addSheet() {
+  const name = prompt('Nombre de la nueva hoja:');
+  if (!name) return;
+  if (state.db.sheets[name]) { toast('Ya existe', true); return; }
+  state.db.sheets[name] = { cells: {}, history: [] };
+  switchSheet(name);
+}
+
+// ════════════════════════════════════════════════
+//  USERS LIST
+// ════════════════════════════════════════════════
+function renderUsersList() {
+  const el = document.getElementById('users-list');
+  el.innerHTML = '';
+  Object.entries(state.db.users).forEach(([username, u]) => {
+    const div = document.createElement('div');
+    div.className = 'user-item';
+    div.innerHTML = `
+      <div class="user-item-name">
+        <div class="online-dot"></div>
+        <span>${u.name}</span>
+      </div>
+      <span class="role-tag ${u.role}">${u.role}</span>
+    `;
+    el.appendChild(div);
+  });
+}
+
+// ════════════════════════════════════════════════
+//  HISTORY
+// ════════════════════════════════════════════════
+function renderHistory() {
+  const hist = (getSheetData().history || []).slice(0, 20);
+  const el = document.getElementById('history-list');
+  el.innerHTML = hist.map(h => `
+    <div class="history-item">
+      <span class="history-cell">${h.cell}</span>
+      → <strong>${escapeHtml(h.newVal)}</strong><br>
+      <small>${h.user} · ${h.ts}</small>
+    </div>
+  `).join('');
+}
+
+// ════════════════════════════════════════════════
+//  ADMIN PANEL
+// ════════════════════════════════════════════════
+function toggleAdminPanel() {
+  document.getElementById('admin-panel').classList.toggle('open');
+}
+
+function renderAdminPanel() {
+  if (state.currentUser?.role !== 'admin') return;
+
+  // Users
+  const ul = document.getElementById('admin-users-list');
+  ul.innerHTML = '';
+  Object.entries(state.db.users).forEach(([username, u]) => {
+    const div = document.createElement('div');
+    div.className = 'user-row';
+    div.innerHTML = `
+      <div>
+        <div class="user-row-name">${u.name}</div>
+        <div class="user-row-role">@${username} · ${u.role}</div>
+      </div>
+      <div class="user-row-actions">
+        ${username !== state.currentUser.username ? `
+          <button class="toolbar-btn" onclick="toggleUserRole('${username}')" title="Cambiar rol">${u.role==='admin'?'→user':'→admin'}</button>
+          <button class="btn-danger" onclick="deleteUser('${username}')">✕</button>
+        ` : '<small style="color:var(--text-dim)">tú</small>'}
+      </div>
+    `;
+    ul.appendChild(div);
+  });
+
+  // Locks
+  const ll = document.getElementById('admin-locks-list');
+  const sheet = getSheetData();
+  const locks = Object.entries(sheet.cells || {}).filter(([,v]) => v.locked);
+  ll.innerHTML = locks.length ? locks.map(([k]) => `
+    <div class="lock-indicator">${k}
+      <button class="btn-danger" onclick="unlockCell('${k}')" style="margin-left:8px;font-size:9px;padding:1px 4px">✕</button>
+    </div>
+  `).join('') : '<div style="font-size:11px;color:var(--text-dim)">No hay celdas bloqueadas</div>';
+
+  // Sheets
+  const sl = document.getElementById('admin-sheets-list');
+  sl.innerHTML = Object.keys(state.db.sheets).map(name => `
+    <div class="user-row">
+      <span style="font-size:12px">${name}</span>
+      ${Object.keys(state.db.sheets).length > 1 ? `<button class="btn-danger" onclick="deleteSheet('${name}')">✕</button>` : ''}
+    </div>
+  `).join('');
+}
+
+function toggleUserRole(username) {
+  const u = state.db.users[username];
+  u.role = u.role === 'admin' ? 'user' : 'admin';
+  renderAdminPanel();
+  renderUsersList();
+  toast(`${u.name}: ahora es ${u.role}`);
+}
+
+function deleteUser(username) {
+  if (!confirm(`¿Eliminar a @${username}?`)) return;
+  delete state.db.users[username];
+  renderAdminPanel();
+  renderUsersList();
+}
+
+function unlockCell(key) {
+  const sheet = getSheetData();
+  if (sheet.cells[key]) sheet.cells[key].locked = false;
+  renderAdminPanel();
+  renderSheet();
+}
+
+function deleteSheet(name) {
+  if (!confirm(`¿Eliminar hoja "${name}"?`)) return;
+  delete state.db.sheets[name];
+  if (state.currentSheet === name) switchSheet(Object.keys(state.db.sheets)[0]);
+  renderAdminPanel();
+  renderSheetsList();
+}
+
+function genInviteCode() {
+  const code = Math.random().toString(36).slice(2,8).toUpperCase();
+  state.db.inviteCodes = [...(state.db.inviteCodes||[]), code];
+  document.getElementById('invite-code-display').value = code;
+  toast(`Código: ${code}`);
+}
+
+function clearAllData() {
+  if (!confirm('¿BORRAR TODOS LOS DATOS? Esta acción no se puede deshacer.')) return;
+  if (!confirm('¿SEGURO? Se borrarán usuarios, hojas y todo el contenido.')) return;
+  state.db = {
+    users: { [state.currentUser.username]: state.db.users[state.currentUser.username] },
+    inviteCodes: [],
+    sheets: { 'Hoja1': { cells: {}, history: [] } },
+    activeSheet: 'Hoja1'
+  };
+  state.currentSheet = 'Hoja1';
+  saveToGitHub();
+  renderSheet();
+  renderSheetsList();
+  renderAdminPanel();
+  renderUsersList();
+  toast('Datos borrados');
+}
+
+// ════════════════════════════════════════════════
+//  CSV
+// ════════════════════════════════════════════════
+function showImportModal() { document.getElementById('import-modal').classList.add('open'); }
+function closeImportModal() { document.getElementById('import-modal').classList.remove('open'); }
+
+function importCSV() {
+  const csv = document.getElementById('csv-input').value;
+  const rows = csv.split('\n').map(r => r.split(','));
+  rows.forEach((row, r) => {
+    row.forEach((val, c) => {
+      if (val.trim()) setCell(r, c, val.trim().replace(/^"|"$/g,''));
+    });
+  });
+  renderSheet();
+  closeImportModal();
+  toast(`Importadas ${rows.length} filas`);
+}
+
+function exportCSV() {
+  const rows = numRows(), cols = numCols();
+  let csv = '';
+  for (let r = 0; r < rows; r++) {
+    const row = [];
+    for (let c = 0; c < cols; c++) {
+      const v = (getCell(r,c).value||'').toString().includes(',') ? `"${getCell(r,c).value}"` : getCell(r,c).value;
+      row.push(v || '');
+    }
+    csv += row.join(',') + '\n';
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+  a.download = `${state.currentSheet}.csv`;
+  a.click();
+}
+
+// ════════════════════════════════════════════════
+//  BOOT
+// ════════════════════════════════════════════════
+async function boot() {
+  state.config = loadConfig();
+  const session = loadSession();
+
+  if (!state.config) {
+    showTab('setup');
+    return;
+  }
+
+  if (session) {
+    const loaded = await loadFromGitHub();
+    if (loaded !== false) {
+      const user = state.db.users[session.username];
+      if (user && user.passHash === session.passHash_cache) {
+        state.currentUser = session;
+        enterApp();
+        return;
+      }
+      // re-verify
+      if (user) {
+        state.currentUser = { username: session.username, name: user.name, role: user.role };
+        saveSession(state.currentUser);
+        enterApp();
+        return;
+      }
+    }
+  }
+
+  // Try to load db anyway for login
+  if (state.config) {
+    loadFromGitHub();
+  }
+}
+
+boot();
+</script>
+</body>
+</html>
